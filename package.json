@@ -4,13 +4,15 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "ar-drone": "git://github.com/felixge/node-ar-drone.git#master",
+    "ar-drone": "^0.3.3",
+    "ardrone-autonomy": "^0.1.2",
     "dronestream": "~1.1.1",
     "express": "~3.4.0",
+    "geolib": "^3.2.1",
     "leaflet": "^1.6.0",
     "leaflet-google": "^1.0.1",
     "node-vincenty": "0.0.6",
-    "socket.io": "~0.9.16"
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {},
   "scripts": {
