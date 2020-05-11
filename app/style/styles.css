@@ -1,0 +1,44 @@
+
+button.active{
+  background:red;
+}
+body{
+  margin:0;
+  padding:0;
+  height:100%;
+  background:#000;
+  color:#fff;
+  font-family: Helvetica, Arial, "MS Trebuchet", sans-serif;
+}
+#map, #droneStream{
+  width: 50%;
+  height: 400px;
+  float:left;
+}
+#data, #controls{
+  width:50%;
+  float:left;
+}
+#droneStream canvas{
+  width: 100%;
+  height: 400px;
+}
+.section{
+  width:33%;
+  float:left;
+}
+.section button{
+  padding:5px;
+  background:#fff;
+  border:none;
+  min-width:100px;
+  cursor:pointer;
+}
+#drone-position, #phone-position{
+  float:left;
+  width:50%;
+}
+.log{
+  clear:both;
+  display:none;
+}
