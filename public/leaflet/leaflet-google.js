@@ -17,13 +17,13 @@ L.Google = L.Class.extend({
 	},
 
 	// Possible types: SATELLITE, ROADMAP, HYBRID
-	initialize: function(type, options) {
+	initialize: function (type, options) {
 		L.Util.setOptions(this, options);
 
 		this._type = google.maps.MapTypeId[type || 'SATELLITE'];
 	},
 
-	onAdd: function(map, insertAtTheBottom) {
+	onAdd: function (map, insertAtTheBottom) {
 		this._map = map;
 		this._insertAtTheBottom = insertAtTheBottom;
 
@@ -42,7 +42,7 @@ L.Google = L.Class.extend({
 		this._update();
 	},
 
-	onRemove: function(map) {
+	onRemove: function (map) {
 		this._map._container.removeChild(this._container);
 		//this._container = null;
 
@@ -52,20 +52,20 @@ L.Google = L.Class.extend({
 		//this._map.off('moveend', this._update, this);
 	},
 
-	getAttribution: function() {
+	getAttribution: function () {
 		return this.options.attribution;
 	},
 
-	setOpacity: function(opacity) {
+	setOpacity: function (opacity) {
 		this.options.opacity = opacity;
 		if (opacity < 1) {
 			L.DomUtil.setOpacity(this._container, opacity);
 		}
 	},
 
-	_initContainer: function() {
+	_initContainer: function () {
 		var tilePane = this._map._container
-			first = tilePane.firstChild;
+		first = tilePane.firstChild;
 
 		if (!this._container) {
 			this._container = L.DomUtil.create('div', 'leaflet-google-layer leaflet-top leaflet-left');
@@ -83,37 +83,37 @@ L.Google = L.Class.extend({
 		}
 	},
 
-	_initMapObject: function() {
+	_initMapObject: function () {
 		this._google_center = new google.maps.LatLng(0, 0);
 		var map = new google.maps.Map(this._container, {
-		    center: this._google_center,
-		    zoom: 0,
-		    mapTypeId: this._type,
-		    disableDefaultUI: true,
-		    keyboardShortcuts: false,
-		    draggable: false,
-		    disableDoubleClickZoom: true,
-		    scrollwheel: false,
-		    streetViewControl: false
+			center: this._google_center,
+			zoom: 0,
+			mapTypeId: this._type,
+			disableDefaultUI: true,
+			keyboardShortcuts: false,
+			draggable: false,
+			disableDoubleClickZoom: true,
+			scrollwheel: false,
+			streetViewControl: false
 		});
 
 		var _this = this;
-		this._reposition = google.maps.event.addListenerOnce(map, "center_changed", 
-			function() { _this.onReposition(); });
-	
+		this._reposition = google.maps.event.addListenerOnce(map, "center_changed",
+			function () { _this.onReposition(); });
+
 		map.backgroundColor = '#ff0000';
 		this._google = map;
 	},
 
-	_resetCallback: function(e) {
+	_resetCallback: function (e) {
 		this._reset(e.hard);
 	},
 
-	_reset: function(clearOldContainer) {
+	_reset: function (clearOldContainer) {
 		this._initContainer();
 	},
 
-	_update: function() {
+	_update: function () {
 		this._resize();
 
 		var bounds = this._map.getBounds();
@@ -131,17 +131,17 @@ L.Google = L.Class.extend({
 		//this._google.fitBounds(google_bounds);
 	},
 
-	_resize: function() {
+	_resize: function () {
 		var size = this._map.getSize();
 		if (this._container.style.width == size.x &&
-		    this._container.style.height == size.y)
+			this._container.style.height == size.y)
 			return;
 		this._container.style.width = size.x + 'px';
 		this._container.style.height = size.y + 'px';
 		google.maps.event.trigger(this._google, "resize");
 	},
 
-	onReposition: function() {
+	onReposition: function () {
 		//google.maps.event.trigger(this._google, "resize");
 	}
 });
