@@ -7,15 +7,15 @@ var waypoints = [];
 var follow = false;
 
 var phoneIcon = L.icon({
-    iconUrl: 'images/iphone.png'
+    iconUrl: '../images/iphone.png'
 });
 
 var laptopIcon = L.icon({
-    iconUrl: 'images/laptop.png'
+    iconUrl: '../images/laptop.png'
 });
 
 var droneIcon = L.icon({
-    iconUrl: 'images/copter.png'
+    iconUrl: '../images/copter.png'
 });
 
 new NodecopterStream(document.getElementById("droneStream"));
