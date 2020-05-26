@@ -5,19 +5,19 @@ function PID(kp, ki, kd) {
     this.reset();
 }
 
-PID.prototype.configure = function(kp,ki,kd) {
+PID.prototype.configure = function (kp, ki, kd) {
     this._kp = kp;
     this._ki = ki;
     this._kd = kd;
 }
 
-PID.prototype.reset = function() {
+PID.prototype.reset = function () {
     this._last_time = 0;
     this._last_error = Infinity;
     this._error_sum = 0;
 }
 
-PID.prototype.getCommand = function(e) {
+PID.prototype.getCommand = function (e) {
     // Compute dt in seconds
     var time = Date.now();
     var dt = (time - this._last_time) / 1000
@@ -39,8 +39,8 @@ PID.prototype.getCommand = function(e) {
 
     // Compute commands
     var command = this._kp * e
-                + this._ki * this._error_sum
-                + this._kd * de;
+        + this._ki * this._error_sum
+        + this._kd * de;
 
     return command;
 }

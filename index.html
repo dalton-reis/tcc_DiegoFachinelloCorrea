@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<title></title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<link rel="stylesheet" href="/styles.css" />
-<link rel="stylesheet" href="/leaflet.css" />
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="/styles/styles.css" />
+  <link rel="stylesheet" href="/leaflet/leaflet.css" />
 </head>
+
 <body>
   <div id="map"></div>
   <div id='droneStream'></div>
@@ -21,8 +23,6 @@
       <button id='clear'>Clear Route</button>
     </div>
     <div class='section'>
-      <button id='follow'>Follow me</button>
-      <button id='manual'>Manual Control</button>
       <button id='stop'>Stop</button>
     </div>
   </div>
@@ -34,25 +34,27 @@
       (+/-<span class='accuracy'>0</span>m)
     </div>
     <div id="drone-position">
-      Drone: 
+      Drone:
       <span class='lat'>0</span>,
       <span class='lon'>0</span>
-      <br/>Distance:
-        <span class='distance'>0</span>m
-      <br/>
+      <br />Distance:
+      <span class='distance'>0</span>m
+      <br />
       Battery:
-        <span class='battery'>0</span>%
+      <span class='battery'>0</span>%
     </div>
     <pre class="log">no data</pre>
   </div>
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPtu0dyrxiNI9oicmH8IHhjIfHu0XmOhA&callback=initMap"></script>
-  <script src="leaflet.js"></script>
-  <script src="gamepad-client.js"></script>
-  <script src="gamepad-calibration.js"></script>
-  <script src="leaflet-google.js"></script>
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPtu0dyrxiNI9oicmH8IHhjIfHu0XmOhA&callback=initMap"></script>
+  <script src="/leaflet/leaflet.js"></script>
+  <script src="/gamepad/gamepad-client.js"></script>
+  <script src="/gamepad/gamepad-calibration.js"></script>
+  <script src="/leaflet/leaflet-google.js"></script>
   <script src="/dronestream/nodecopter-client.js"></script>
-  <script src="jquery.js"></script>
+  <script src="/scripts/jquery.js"></script>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="/scripts.js"></script>
+  <script src="/scripts/scripts.js"></script>
 </body>
+
 </html>
