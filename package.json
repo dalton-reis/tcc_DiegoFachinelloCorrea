@@ -12,6 +12,7 @@
     "leaflet": "^1.6.0",
     "leaflet-google": "^1.0.1",
     "node-vincenty": "0.0.6",
+    "nodemon": "^2.0.4",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {},

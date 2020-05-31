@@ -4,10 +4,11 @@ var targetLat, targetLon;
 var waypointMarkers = [];
 var activeWaypoints = [];
 var waypoints = [];
+var liveDefaultPosition = {};
 var follow = false;
 
 var phoneIcon = L.icon({
-    iconUrl: '../images/iphone.png'
+    iconUrl: '../images/phone.png'
 });
 
 var laptopIcon = L.icon({
@@ -15,7 +16,7 @@ var laptopIcon = L.icon({
 });
 
 var droneIcon = L.icon({
-    iconUrl: '../images/copter.png'
+    iconUrl: '../images/drone.gif'
 });
 
 new NodecopterStream(document.getElementById("droneStream"));
@@ -45,8 +46,8 @@ function initMap(position) {
 }
 
 function defaultMap(err) {
-    console.log(err)
-    initMap({ coords: { latitude: 51, longitude: 2 } })
+    console.log("Initial map failed" + err)
+    initMap({ coords: { latitude: liveDefaultPosition.LAT_P, longitude: liveDefaultPosition.LON_P } })
 }
 
 function clearWaypoints() {
@@ -125,11 +126,16 @@ socket.on('connect', function() {
     })
     socket.on('drone', function(data) {
         if (data.lat != undefined) {
+            liveDefaultPosition.LAT_P = data.lat;
+            liveDefaultPosition.LON_P = data.lon;
             if (drone == null) {
                 drone = L.marker([data.lat, data.lon], { icon: droneIcon }).addTo(map)
                 dronePath = L.polyline([
                     [data.lat, data.lon]
-                ], { color: 'green' }).addTo(map);
+                ], { color: 'red',
+                     weight: 3,
+                     opacity: 0.5,
+                     smoothFactor: 1 }).addTo(map);
             } else {
                 drone.setLatLng([data.lat, data.lon])
                 dronePath.addLatLng([data.lat, data.lon])
