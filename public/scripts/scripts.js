@@ -130,15 +130,8 @@ socket.on('connect', function() {
             liveDefaultPosition.LON_P = data.lon;
             if (drone == null) {
                 drone = L.marker([data.lat, data.lon], { icon: droneIcon }).addTo(map)
-                /*dronePath = L.polyline([
-                    [data.lat, data.lon]
-                ], { color: 'red',
-                     weight: 3,
-                     opacity: 0.5,
-                     smoothFactor: 1 }).addTo(map);*/
             } else {
                 drone.setLatLng([data.lat, data.lon])
-                dronePath.addLatLng([data.lat, data.lon])
             }
             $('#drone-position .battery').text(data.battery)
             $('#drone-position .lat').text(data.lat)
@@ -157,10 +150,10 @@ socket.on('connect', function() {
                 phonePath = L.polyline([
                     [data.lat, data.lon]
                 ], { color: 'red' }).addTo(map);
-            } else {*/
+            } else {
                 phone.setLatLng([data.lat, data.lon])
                 phonePath.addLatLng([data.lat, data.lon])
-            //}
+            }*/
             if (follow) {
                 setCurrentTarget(data.lat, data.lon)
             }
