@@ -24,15 +24,6 @@ io.set('destroy upgrade', false);
 io.sockets.on('connection', function (socket) {
   console.log('connection');
 
-  socket.on('control', function (ev) {
-    console.log('[control]', JSON.stringify(ev));
-    if (ev.action == 'animate') {
-      mission.client().animate(ev.animation, ev.duration)
-    } else {
-      mission.client()[ev.action].call(mission.client(), ev.speed);
-    }
-  });
-
   socket.on('takeoff', function (data) {
     console.log('takeoff', data)
     mission.client().takeoff()
@@ -65,7 +56,25 @@ io.sockets.on('connection', function (socket) {
 
   socket.on('stop', function (data) {
     stop();
-  })
+  });
+
+  socket.on('twitter', function (data) {
+    executeTwitterEvent();
+  });
+
+  socket.on('thesis', function (data) {
+    executeThesis();
+  });
+
+  socket.on('manualControl', function (key) {
+    executeEvent(key);
+  });
+
+  socket.on('missionParams', function (params) {
+    shouldRotate = params.shouldRotate;
+    shouldCalibrate = params.shouldCalibrate;
+    altitude = Number(params.altitude);
+  });
 
   setInterval(function () {
     io.sockets.emit('drone', { lat: currentLat, lon: currentLon, yaw: currentYaw, distance: currentDistance, battery: battery })
@@ -74,15 +83,47 @@ io.sockets.on('connection', function (socket) {
 });
 
 var autonomy = require('ardrone-autonomy');
-var PID = require('./PID');
+//var PID = require('./PID');
 var geolib = require("geolib");
-
 var mission = autonomy.createMission();
-var ctrl = new autonomy.Controller(mission.client(), { debug: false });
+var dateFormat = require('dateformat');
+var pngStream = mission.client().getPngStream();
+var ctrl = new autonomy.Controller(mission.client(), { debug: false }); //manual control
 
+const Twitter = require("twitter");
+const dotenv = require("dotenv");
+//onst Path = require('path')
+const fs = require("fs")
+
+dotenv.config()
+
+const twitter = new Twitter({
+  consumer_key: process.env.CONSUMER_KEY,
+  consumer_secret: process.env.CONSUMER_SECRET,
+  access_token_key: process.env.ACCESS_TOKEN_KEY,
+  access_token_secret: process.env.ACCESS_TOKEN_SECRET
+})
+
+//receive navdata configuration
 mission.client().config('general:navdata_demo', 'FALSE');
 
-var targetLat, targetLon, targetYaw, currentLat, currentLon, currentDistance, currentYaw, phoneAccuracy, yawAdjustment, distance, droneBearing, droneAbsoluteBearing, displacementVector, displacement;
+var targetLat,
+  targetLon,
+  currentLat,
+  currentLon,
+  currentDistance,
+  currentYaw,
+  phoneAccuracy,
+  yawAdjustment,
+  distance,
+  droneBearing,
+  displacementVector,
+  displacement,
+  imagePost,
+  altitude,
+  shouldCalibrate,
+  shouldRotate;
+
 var battery = 0;
 
 var stop = function () {
@@ -93,26 +134,117 @@ var stop = function () {
   mission.client().stop()
 };
 
-// Get the drone absolute bearing
-let getDroneAbsoluteBearing = function () {
-  return mission.control()._ekf.state().absoluteYaw;
+let takePhoto = function () {
+  pngStream.once("data", function (data) {
+    var now = new Date();
+    var nowFormat = dateFormat(now, "isoDateTime");
+    imagePost = "./public/images/tcc-" + nowFormat + ".png";
+
+    fs.writeFile(imagePost, data, function (err) {
+      return err ? false : true
+    })
+  });
+};
+
+let postTwitter = function () {
+
+  const imageData = fs.readFileSync(imagePost)
+
+  twitter.post("media/upload", { media: imageData }, function (error, media, response) {
+    if (error) {
+      console.log(error)
+      return false
+    } else {
+      const status = {
+        status: "Defesa do TCC, foto aérea capturada pelo AR.Drone 2.0 autonômo! FURB",
+        media_ids: media.media_id_string
+      }
+      twitter.post("statuses/update", status, function (error, tweet, response) {
+        return error ? false : true
+      })
+    }
+  })
+};
+
+let executeTwitterEvent = async function () {
+
+  mission.altitude(1.5)
+    .hover(1000)
+    .ccw(180)
+    .hover(100)
+    .backward(0.5)
+  mission.run()
+
+  await takePhoto.then((err) => {
+    if (!err) {
+      mission.client().animateLeds('doubleMissile', 5, 3)
+      postTwitter().then((error) => {
+        if (!error) {
+          mission.client().animate('flipAhead', 1000)
+        }
+      })
+    }
+  }).finally(() => {
+    mission.client().land()
+  })
+};
+
+let executeThesis = function () {
+  //Do the coolest autonomous fly
+  mission.altitude(1.5)
+    .forward(1)
+    .ccw(180)
+    .up(0.5)
+    .cw(90)
+    .backward(0.5)
+    .cw(90)
+    .down(0.5)
+    .hover(1000)
+  mission.run()
+
+  mission.client.animate("yawShake", 1000)
+  mission.client().animate("wave", 1000)
+  mission.client().lan()
+};
+
+let executeEvent = function (key) {
+  switch (key) {
+    case "ArrowLeft":
+      // Left
+      ctrl.left(1)
+      break;
+    case "ArrowRight":
+      // Right
+      ctrl.right(1)
+      break;
+    case "ArrowUp":
+      // Front
+      ctrl.forward(1)
+      break;
+    case "ArrowDown":
+      // Back
+      ctrl.backward(1)
+      break;
+    case "w":
+      //Up 
+      ctrl.up(1)
+    case "s":
+      //Down
+      ctrl.down(1)
+  }
 };
 
 let run = function () {
 
-  //Commands to waiting and load navdata necessary variables
-  if (displacement == undefined) {
-    mission.altitude(1.5)
+  // Goes to destined altitude
+  mission.altitude(altitude)
     .hover(1000)
-    mission.run()
+  mission.run()
 
-    //recursive run
-    run();
-}
-  console.log("currentYaw", currentYaw);
+  /*console.log("currentYaw", currentYaw);
   console.log("displacement", displacement);
   console.log("distance", distance);
-  console.log("yawAdjustment", yawAdjustment);
+  console.log("yawAdjustment", yawAdjustment);*/
 
   if (displacement > 1) {
     // Craft mission
@@ -120,39 +252,43 @@ let run = function () {
 
     //Turn clockwise in the direction to face the waypoint
     mission.cw(yawAdjustment)
-    .hover(1000)
     mission.run()
 
-    //find an way to calibrate 
-
     mission.zero()
-      .up(0.5)
+      .up(2)
+      .ccw(yawAdjustment)
       .hover(1000)
-      .forward(displacement)
+      .forward(displacement - 15) //Close test
 
     mission.run(function (err, result) {
       if (err) {
         console.log("Oops, something bad happened: %s", err.message);
-        mission.client().stop();
-        //mission.client().land();
+        stop();
       } else if (result) {
         io.sockets.emit('waypointReached', { lat: targetLat, lon: targetLon });
-        console.log('Reached ', targetLat, targetLon);
-        stop()
+        //console.log('Reached ', targetLat, targetLon);
+        //stop();
       }
     });
+  } else {
+    // Drone calibrate 
+    if (shouldCalibrate) {
+      mission.client().calibrate()
+    }
+    //recursive run
+    run();
   }
 };
 
 //Process all navdata from drone
 let handleNavData = async function (data) {
+
   if (data.demo == null || data.gps == null) return;
+
   battery = data.demo.batteryPercentage;
   currentLat = data.gps.latitude;
   currentLon = data.gps.longitude;
-  currentYaw = data.demo.rotation.yaw;
-  
-  shouldRotateTowardsWaypoint = true;
+  currentYaw = data.demo.rotation.yaw; // Live angle
 
   if (targetLat == null || targetLon == null || currentYaw == null || currentLat == null || currentLon == null) return;
 
@@ -167,7 +303,7 @@ let handleNavData = async function (data) {
 
   // Find X and Y components of displacement vector
   displacementVector = $V([Math.cos(droneBearing) * distance, Math.sin(droneBearing) * distance]);
-  
+
   // Calculate angle needed to rotate so that the drone is facing the waypoint
   yawAdjustment = droneBearing;
 
@@ -176,9 +312,10 @@ let handleNavData = async function (data) {
   while (yawAdjustment > 180) { yawAdjustment -= 360; }
   while (yawAdjustment < -180) { yawAdjustment += 360; }
 
+  // Normalize the angle
   yawAdjustment -= currentYaw;
 
-  if (shouldRotateTowardsWaypoint) {
+  if (shouldRotate) {
     displacement = Math.hypot(displacementVector.elements[0], displacementVector.elements[1]);
   } else {
     displacement = distance;

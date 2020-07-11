@@ -1,6 +1,17 @@
 var socket = io.connect('/');
-var lat, lon, map, laptop, drone, phone, phonePath, waypointPath, dronePath, startPosition;
-var targetLat, targetLon;
+var lat,
+    lon,
+    map,
+    laptop,
+    drone,
+    phone,
+    phonePath,
+    waypointPath,
+    dronePath,
+    startPosition,
+    targetLat,
+    targetLon;
+
 var waypointMarkers = [];
 var activeWaypoints = [];
 var waypoints = [];
@@ -34,7 +45,7 @@ function initMap(position) {
 
     laptop = L.marker([lat, lon], { icon: laptopIcon }).addTo(map)
 
-    map.on('click', function(e) {
+    map.on('click', function (e) {
         waypointMarkers.push(L.marker(e.latlng).addTo(map))
         waypoints.push([e.latlng.lat, e.latlng.lng])
         if (waypointPath == undefined) {
@@ -54,7 +65,7 @@ function clearWaypoints() {
     waypoints = []
     map.removeLayer(waypointPath)
     waypointPath = undefined
-    $.each(waypointMarkers, function(i, m) { map.removeLayer(m) })
+    $.each(waypointMarkers, function (i, m) { map.removeLayer(m) })
 }
 
 function setCurrentTarget(lat, lon) {
@@ -69,36 +80,36 @@ function clearCurrentTarget() {
     socket.emit('stop')
 }
 
-$(function() {
-    $('#takeoff').click(function() {
+$(function () {
+    $('#takeoff').click(function () {
         follow = false
         socket.emit('takeoff')
         if (drone != null) {
             startPosition = [drone._latlng.lat, drone._latlng.lng]
         }
     })
-    $('#land').click(function() {
+    $('#land').click(function () {
         follow = false
         socket.emit('land')
         startPosition = []
     })
-    $('#reset').click(function() {
+    $('#reset').click(function () {
         socket.emit('reset')
     })
-    $('#stop').click(function() {
+    $('#stop').click(function () {
         follow = false
         clearCurrentTarget()
     })
-    $('#clear').click(function() {
+    $('#clear').click(function () {
         follow = false
         clearWaypoints()
     })
-    $('#home').click(function() {
+    $('#home').click(function () {
         follow = false
         activeWaypoints = [startPosition[0], startPosition[1]]
         setCurrentTarget(startPosition[0], startPosition[1])
     })
-    $('#go').click(function() {
+    $('#go').click(function () {
         follow = false
         if (waypoints.length > 0) {
             activeWaypoints = waypoints.slice(0);
@@ -106,25 +117,45 @@ $(function() {
             setCurrentTarget(activeWaypoints[0][0], activeWaypoints[0][1])
         }
     })
-    $('#follow').click(function() {
+    $('#follow').click(function () {
         follow = true
     })
-    $('#manual').click(function() {
+    $('#manual').click(function () {
         follow = false
         clearCurrentTarget()
-        nodecopterGamepad.initGamepad(socket);
+        document.addEventListener('keydown', function (event) {
+            const key = event.key;
+            socket.emit('manualControl', key)
+        });
+    })
+    $('#twitter').click(function () {
+        socket.emit('twitter')
+    })
+    $('#thesis').click(function () {
+        socket.emit('thesis')
+    })
+    $('#parameters').click(function () {
+        var params = {
+            shouldRotate: document.getElementById("calibrate").checked,
+            shouldCalibrate: document.getElementById("rotate").checked,
+            altitude:  document.getElementById("altitude").value
+        };
+        socket.emit('missionParams', params)
     })
 })
 
-socket.on('connect', function() {
-    socket.on('waypointReached', function(data) {
+socket.on('connect', function () {
+    socket.on('waypointReached', function (data) {
         activeWaypoints.shift()
         if (activeWaypoints.length > 0) {
             // Go to next waypoint
             setCurrentTarget(activeWaypoints[0][0], activeWaypoints[0][1])
+        } else {
+            activeWaypoints = [startPosition[0], startPosition[1]]
+            setCurrentTarget(startPosition[0], startPosition[1])
         }
     })
-    socket.on('drone', function(data) {
+    socket.on('drone', function (data) {
         if (data.lat != undefined) {
             liveDefaultPosition.LAT_P = data.lat;
             liveDefaultPosition.LON_P = data.lon;
@@ -140,20 +171,11 @@ socket.on('connect', function() {
         }
     })
 
-    socket.on('phone', function(data) {
+    socket.on('phone', function (data) {
         if (data.lat != undefined) {
             if (laptop == null) {
                 initMap(data.lat, data.lon)
             }
-            /*if (phone == null) {
-                phone = L.marker([data.lat, data.lon], { icon: phoneIcon }).addTo(map)
-                phonePath = L.polyline([
-                    [data.lat, data.lon]
-                ], { color: 'red' }).addTo(map);
-            } else {
-                phone.setLatLng([data.lat, data.lon])
-                phonePath.addLatLng([data.lat, data.lon])
-            }*/
             if (follow) {
                 setCurrentTarget(data.lat, data.lon)
             }
