@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title></title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="stylesheet" href="/styles/styles.css" />
   <link rel="stylesheet" href="/leaflet/leaflet.css" />
 </head>
-
 <body>
   <div id="map"></div>
   <div id='droneStream'></div>
@@ -18,11 +16,14 @@
       <button id='reset'>Reset</button>
     </div>
     <div class='section'>
-      <button id='go'>Go to waypoint</button><br />
+      <button id='go'>Go to Waypoint</button><br />
       <button id='home'>Return Home</button><br />
-      <button id='clear'>Clear Route</button>
+      <button id='clear'>Clear Route</button><br />
+      <button id='manual'>Manual Control</button>
     </div>
     <div class='section'>
+      <button id='thesis'>Autonomous Test</button><br />
+      <button id='twitter'>Break Loose</button><br />
       <button id='stop'>Stop</button>
     </div>
   </div>
@@ -32,6 +33,14 @@
       <span class='lat'>0</span>,
       <span class='lon'>0</span>
       (+/-<span class='accuracy'>0</span>m)
+      <p>Drone parameters</p>
+      <label for="altitude">Altitude (between 3 and 15):</label>
+      <input type="number" id="altitude" name="altitude" min="3" max="15" /><br />
+      <label>Should rotate: </label>
+      <input type="checkbox" checked="true" id="rotate" /><br />
+      <label>Should calibrate: </label>
+      <input type="checkbox" checked="true" id="calibrate" /><br />
+      <button id='parameters'>Save</button>
     </div>
     <div id="drone-position">
       Drone:
@@ -56,5 +65,4 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="/scripts/scripts.js"></script>
 </body>
-
 </html>

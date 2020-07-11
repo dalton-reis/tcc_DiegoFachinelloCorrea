@@ -1,11 +1,13 @@
 {
   "name": "ar-drone-autonomous",
   "version": "0.0.1",
-  "description": "",
+  "description": "Autonomous fly Parrot Ar Drone with GPS module",
   "main": "index.js",
   "dependencies": {
     "ar-drone": "^0.3.3",
     "ardrone-autonomy": "^0.1.2",
+    "dateformat": "^3.0.3",
+    "dotenv": "^8.2.0",
     "dronestream": "~1.1.1",
     "express": "~3.4.0",
     "geolib": "^3.2.1",
@@ -13,7 +15,8 @@
     "leaflet-google": "^1.0.1",
     "node-vincenty": "0.0.6",
     "nodemon": "^2.0.4",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.3.0",
+    "twitter": "^1.7.1"
   },
   "devDependencies": {},
   "scripts": {
