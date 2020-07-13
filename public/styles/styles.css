@@ -49,17 +49,17 @@ body {
     line-height: 0px;
     color: #FFFFFF;
     font-family: sans-serif;
-    width: auto;
+    width: -webkit-fill-available;
     font-size: 15px;
     font-weight: 100;
-    padding: 24px;
+    padding: 18px;
     box-shadow: 8px 3px 33px 3px #000000;
     -webkit-box-shadow: 8px 3px 33px 3px #000000;
     -moz-box-shadow: 8px 3px 33px 3px #000000;
     text-shadow: 1px 1px 20px #000000;
     border: solid #337FED 1px;
     text-decoration: none;
-    display: list-item;
+    display: flow-root;
     cursor: pointer;
     text-align: center;
 }
