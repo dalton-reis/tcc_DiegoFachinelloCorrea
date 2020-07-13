@@ -6,10 +6,10 @@
   "dependencies": {
     "ar-drone": "^0.3.3",
     "ardrone-autonomy": "^0.1.2",
-    "dateformat": "^3.0.3",
     "dotenv": "^8.2.0",
     "dronestream": "~1.1.1",
     "express": "~3.4.0",
+    "ffmpeg": "0.0.4",
     "geolib": "^3.2.1",
     "leaflet": "^1.6.0",
     "leaflet-google": "^1.0.1",

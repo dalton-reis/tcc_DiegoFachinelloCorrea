@@ -30,7 +30,7 @@ var droneIcon = L.icon({
     iconUrl: '../images/drone.gif'
 });
 
-new NodecopterStream(document.getElementById("droneStream"));
+//new NodecopterStream(document.getElementById("droneStream"));
 
 navigator.geolocation.getCurrentPosition(initMap, defaultMap, { enableHighAccuracy: true });
 
@@ -124,9 +124,8 @@ $(function () {
         follow = false
         clearCurrentTarget()
         document.addEventListener('keydown', function (event) {
-            const key = event.key;
-            socket.emit('manualControl', key)
-        });
+            socket.emit('manualControl', event.key)
+        })
     })
     $('#twitter').click(function () {
         socket.emit('twitter')
@@ -138,7 +137,7 @@ $(function () {
         var params = {
             shouldRotate: document.getElementById("calibrate").checked,
             shouldCalibrate: document.getElementById("rotate").checked,
-            altitude:  document.getElementById("altitude").value
+            altitude: document.getElementById("altitude").value
         };
         socket.emit('missionParams', params)
     })

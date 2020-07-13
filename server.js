@@ -15,7 +15,7 @@ app.get('/phone', function (req, res) {
 
 server.listen(8080);
 
-require("dronestream").listen(server);
+//require("dronestream").listen(server);
 
 var io = require('socket.io').listen(server);
 
@@ -83,17 +83,12 @@ io.sockets.on('connection', function (socket) {
 });
 
 var autonomy = require('ardrone-autonomy');
-//var PID = require('./PID');
 var geolib = require("geolib");
 var mission = autonomy.createMission();
-var dateFormat = require('dateformat');
-var pngStream = mission.client().getPngStream();
-var ctrl = new autonomy.Controller(mission.client(), { debug: false }); //manual control
 
 const Twitter = require("twitter");
 const dotenv = require("dotenv");
-//onst Path = require('path')
-const fs = require("fs")
+const fs = require("fs");
 
 dotenv.config()
 
@@ -119,12 +114,10 @@ var targetLat,
   droneBearing,
   displacementVector,
   displacement,
-  imagePost,
-  altitude,
-  shouldCalibrate,
-  shouldRotate;
-
-var battery = 0;
+  altitude = 0,
+  shouldCalibrate = false,
+  shouldRotate = true,
+  battery;
 
 var stop = function () {
   console.log('stop');
@@ -134,63 +127,76 @@ var stop = function () {
   mission.client().stop()
 };
 
-let takePhoto = function () {
-  pngStream.once("data", function (data) {
-    var now = new Date();
-    var nowFormat = dateFormat(now, "isoDateTime");
-    imagePost = "./public/images/tcc-" + nowFormat + ".png";
+let takePhoto = async function (data) {
 
-    fs.writeFile(imagePost, data, function (err) {
-      return err ? false : true
-    })
-  });
+  setTimeout(function () {
+    mission.client().getPngStream().once('data', function (data) {
+      var fileName = 'public/images/tcc.png';
+      // Save the picture
+      fs.writeFile(fileName, data, function (err) {
+        if (err) {
+          return console.log(err)
+        } else {
+          return console.log("Saved!")
+        }
+      });
+    });
+  }, 4000);
 };
 
 let postTwitter = function () {
 
-  const imageData = fs.readFileSync(imagePost)
-
-  twitter.post("media/upload", { media: imageData }, function (error, media, response) {
-    if (error) {
-      console.log(error)
-      return false
-    } else {
-      const status = {
-        status: "Defesa do TCC, foto aérea capturada pelo AR.Drone 2.0 autonômo! FURB",
-        media_ids: media.media_id_string
+  const imageData = fs.readFileSync('./public/images/tcc.png')
+  setTimeout(function () {
+    twitter.post("media/upload", { media: imageData }, function (error, media, response) {
+      if (error) {
+        console.log(error)
+        return false
+      } else {
+        const status = {
+          status: "Defesa do TCC, foto aérea capturada pelo AR.Drone 2.0 autonômo! FURB",
+          media_ids: media.media_id_string
+        }
+        twitter.post("statuses/update", status, function (error, tweet, response) {
+          return error ? false : true
+        })
       }
-      twitter.post("statuses/update", status, function (error, tweet, response) {
-        return error ? false : true
-      })
-    }
-  })
+    })
+  }, 4000);
 };
 
-let executeTwitterEvent = async function () {
+let executeTwitterEvent = function () {
 
   mission.altitude(1.5)
     .hover(1000)
     .ccw(180)
-    .hover(100)
-    .backward(0.5)
-  mission.run()
+    .hover(1000)
+    .forward(0.5)
+  mission.run(takeAndPost())
 
-  await takePhoto.then((err) => {
-    if (!err) {
-      mission.client().animateLeds('doubleMissile', 5, 3)
-      postTwitter().then((error) => {
-        if (!error) {
-          mission.client().animate('flipAhead', 1000)
-        }
-      })
+};
+
+let takeAndPost = async function () {
+  fs.watch('public/images/tcc.png', function (event, filename) {
+    if (event == 'change') {
+      console.log("File change: " + event)
+      postTwitter();
+      mission.client()
+        .after(3000, function () {
+          this.animate('flipLeft', 1000);
+        })
+        .after(2000, function () {
+          this.land();
+        })
     }
-  }).finally(() => {
-    mission.client().land()
-  })
+  });
+  await takePhoto().then(() => {
+    console.log("Picture taken")
+  });
 };
 
 let executeThesis = function () {
-  //Do the coolest autonomous fly
+  //Do the autonomous fly
   mission.altitude(1.5)
     .forward(1)
     .ccw(180)
@@ -200,55 +206,69 @@ let executeThesis = function () {
     .cw(90)
     .down(0.5)
     .hover(1000)
+    .land()
   mission.run()
 
-  mission.client.animate("yawShake", 1000)
-  mission.client().animate("wave", 1000)
-  mission.client().lan()
 };
 
 let executeEvent = function (key) {
-  switch (key) {
-    case "ArrowLeft":
-      // Left
-      ctrl.left(1)
-      break;
-    case "ArrowRight":
-      // Right
-      ctrl.right(1)
-      break;
-    case "ArrowUp":
-      // Front
-      ctrl.forward(1)
-      break;
-    case "ArrowDown":
-      // Back
-      ctrl.backward(1)
-      break;
-    case "w":
-      //Up 
-      ctrl.up(1)
-    case "s":
-      //Down
-      ctrl.down(1)
-  }
+
+  mission.client()
+    .after(1, function () {
+      if (key == "ArrowLeft")
+        this.left(0.2);
+      else if (key == "ArrowRight")
+        this.right(0.2);
+      else if (key == "ArrowUp")
+        this.front(0.2)
+      else if (key == "ArrowDown")
+        this.back(0.2)
+      else if (key == "s")
+        this.down(0.2)
+      else if (key == "w")
+        this.up(0.2)
+    })
+    .after(1000, function () {
+      this.stop();
+    })
 };
 
 let run = function () {
 
+  //var missonTestGO = true;
+
   // Goes to destined altitude
+  altitude = altitude > 0 ? altitude : 8;
+
   mission.altitude(altitude)
     .hover(1000)
   mission.run()
 
-  /*console.log("currentYaw", currentYaw);
-  console.log("displacement", displacement);
-  console.log("distance", distance);
-  console.log("yawAdjustment", yawAdjustment);*/
+  // Drone calibrate 
+  if (shouldCalibrate) {
+    mission.client().calibrate(0); //Calibrate passing 0 = magnometer
+  }
 
   if (displacement > 1) {
+
+    displacement = displacement > 30 ? 28 : displacement; //Test wifi range
+
+    //Test the go option
+    /*if (shouldRotate && missonTestGO) {
+      if (Math.abs(yawAdjustment) > 0.1) {
+        mission.cw(yawAdjustment)
+        mission.run()
+      }
+      // Go to waypoint
+      mission.go({ x: displacement, y: 0, z: [targetLat, targetLon], yaw: 0 }).hover(100);
+      mission.run()
+    } else if (missonTestGO) {
+      mission.go({ x: displacementVector.elements[0], y: displacementVector.elements[1], z: [targetLat, targetLon], yaw: 0 }).hover(100);
+      mission.run()
+    }*/
+
     // Craft mission
-    console.log("Crafting mision");
+    console.log("Crafting mision")
 
     //Turn clockwise in the direction to face the waypoint
     mission.cw(yawAdjustment)
@@ -258,7 +278,7 @@ let run = function () {
       .up(2)
       .ccw(yawAdjustment)
       .hover(1000)
-      .forward(displacement - 15) //Close test
+      .forward(displacement)
 
     mission.run(function (err, result) {
       if (err) {
@@ -266,17 +286,13 @@ let run = function () {
         stop();
       } else if (result) {
         io.sockets.emit('waypointReached', { lat: targetLat, lon: targetLon });
-        //console.log('Reached ', targetLat, targetLon);
-        //stop();
+        console.log('Reached ', targetLat, targetLon);
+        stop();
       }
     });
   } else {
-    // Drone calibrate 
-    if (shouldCalibrate) {
-      mission.client().calibrate()
-    }
-    //recursive run
-    run();
+    console.log("The distance is too short!");
+    run()
   }
 };
 
