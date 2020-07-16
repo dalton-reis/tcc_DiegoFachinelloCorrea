@@ -30,7 +30,7 @@ var droneIcon = L.icon({
     iconUrl: '../images/drone.gif'
 });
 
-//new NodecopterStream(document.getElementById("droneStream"));
+new NodecopterStream(document.getElementById("droneStream"));
 
 navigator.geolocation.getCurrentPosition(initMap, defaultMap, { enableHighAccuracy: true });
 
