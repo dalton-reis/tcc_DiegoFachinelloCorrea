@@ -9,10 +9,6 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
-app.get('/phone', function (req, res) {
-  res.sendfile(__dirname + '/phone.html');
-});
-
 server.listen(8080);
 
 require("dronestream").listen(server);
@@ -39,11 +35,11 @@ io.sockets.on('connection', function (socket) {
     mission.client().disableEmergency()
   });
 
-  socket.on('phone', function (data) {
-    console.log('phone', data)
+  socket.on('home', function (data) {
+    console.log('home', data)
     targetLat = data.lat
     targetLon = data.lon
-    phoneAccuracy = data.accuracy
+    homeAccuracy = data.accuracy
   });
 
   socket.on('go', function (data) {
@@ -78,7 +74,7 @@ io.sockets.on('connection', function (socket) {
 
   setInterval(function () {
     io.sockets.emit('drone', { lat: currentLat, lon: currentLon, yaw: currentYaw, distance: currentDistance, battery: battery })
-    io.sockets.emit('phone', { lat: targetLat, lon: targetLon, accuracy: phoneAccuracy })
+    io.sockets.emit('home', { lat: targetLat, lon: targetLon, accuracy: homeAccuracy })
   }, 1000)
 });
 
@@ -108,7 +104,7 @@ var targetLat,
   currentLon,
   currentDistance,
   currentYaw,
-  phoneAccuracy,
+  homeAccuracy,
   yawAdjustment,
   distance,
   droneBearing,
