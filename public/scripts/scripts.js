@@ -4,8 +4,8 @@ var lat,
     map,
     laptop,
     drone,
-    phone,
-    phonePath,
+    home,
+    homePath,
     waypointPath,
     dronePath,
     startPosition,
@@ -17,10 +17,6 @@ var activeWaypoints = [];
 var waypoints = [];
 var liveDefaultPosition = {};
 var follow = false;
-
-var phoneIcon = L.icon({
-    iconUrl: '../images/phone.png'
-});
 
 var laptopIcon = L.icon({
     iconUrl: '../images/laptop.png'
@@ -170,7 +166,7 @@ socket.on('connect', function () {
         }
     })
 
-    socket.on('phone', function (data) {
+    socket.on('home', function (data) {
         if (data.lat != undefined) {
             if (laptop == null) {
                 initMap(data.lat, data.lon)
@@ -178,9 +174,9 @@ socket.on('connect', function () {
             if (follow) {
                 setCurrentTarget(data.lat, data.lon)
             }
-            $('#phone-position .lat').text(data.lat)
-            $('#phone-position .lon').text(data.lon)
-            $('#phone-position .accuracy').text(data.accuracy)
+            $('#home-position .lat').text(data.lat)
+            $('#home-position .lon').text(data.lon)
+            $('#home-position .accuracy').text(data.accuracy)
         }
     })
 })
