@@ -79,7 +79,7 @@ body {
 }
 
 #drone-position,
-#phone-position {
+#home-position {
     float: left;
     width: 50%;
 }

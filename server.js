@@ -9,13 +9,9 @@ app.get('/', function (req, res) {
   res.sendfile(__dirname + '/index.html');
 });
 
-app.get('/phone', function (req, res) {
-  res.sendfile(__dirname + '/phone.html');
-});
-
 server.listen(8080);
 
-//require("dronestream").listen(server);
+require("dronestream").listen(server);
 
 var io = require('socket.io').listen(server);
 
@@ -39,11 +35,11 @@ io.sockets.on('connection', function (socket) {
     mission.client().disableEmergency()
   });
 
-  socket.on('phone', function (data) {
-    console.log('phone', data)
+  socket.on('home', function (data) {
+    console.log('home', data)
     targetLat = data.lat
     targetLon = data.lon
-    phoneAccuracy = data.accuracy
+    homeAccuracy = data.accuracy
   });
 
   socket.on('go', function (data) {
@@ -78,7 +74,7 @@ io.sockets.on('connection', function (socket) {
 
   setInterval(function () {
     io.sockets.emit('drone', { lat: currentLat, lon: currentLon, yaw: currentYaw, distance: currentDistance, battery: battery })
-    io.sockets.emit('phone', { lat: targetLat, lon: targetLon, accuracy: phoneAccuracy })
+    io.sockets.emit('home', { lat: targetLat, lon: targetLon, accuracy: homeAccuracy })
   }, 1000)
 });
 
@@ -108,7 +104,7 @@ var targetLat,
   currentLon,
   currentDistance,
   currentYaw,
-  phoneAccuracy,
+  homeAccuracy,
   yawAdjustment,
   distance,
   droneBearing,
@@ -168,26 +164,28 @@ let postTwitter = function () {
 let executeTwitterEvent = function () {
 
   mission.altitude(1.5)
-    .hover(1000)
-    .ccw(180)
-    .hover(1000)
-    .forward(0.5)
-  mission.run(takeAndPost())
+  mission.run()
+  takeAndPost()
 
 };
+
+let flip = function () {
+  mission.client()
+    .after(3000, function () {
+      this.animate('flipLeft', 1000);
+      console.log("Flip")
+    })
+    .after(2000, function () {
+      this.land();
+    })
+}
 
 let takeAndPost = async function () {
   fs.watch('public/images/tcc.png', function (event, filename) {
     if (event == 'change') {
       console.log("File change: " + event)
       postTwitter();
-      mission.client()
-        .after(3000, function () {
-          this.animate('flipLeft', 1000);
-        })
-        .after(2000, function () {
-          this.land();
-        })
+      flip();
     }
   });
   await takePhoto().then(() => {
@@ -196,11 +194,13 @@ let takeAndPost = async function () {
 };
 
 let executeThesis = function () {
+  mission.client().calibrate('0')
+
   //Do the autonomous fly
-  mission.altitude(1.5)
+  mission.up(0.3)
     .forward(1)
-    .ccw(180)
-    .up(0.5)
+    .cw(180)
+    .up(0.3)
     .cw(90)
     .backward(0.5)
     .cw(90)
@@ -237,17 +237,17 @@ let run = function () {
 
   //var missonTestGO = true;
 
+  // Drone calibrate 
+  if (shouldCalibrate) {
+    mission.client().calibrate('0'); //Calibrate passing 0 = magnometer
+  }
+
   // Goes to destined altitude
   altitude = altitude > 0 ? altitude : 8;
 
   mission.altitude(altitude)
     .hover(1000)
   mission.run()
-
-  // Drone calibrate 
-  if (shouldCalibrate) {
-    mission.client().calibrate(0); //Calibrate passing 0 = magnometer
-  }
 
   if (displacement > 1) {
 
