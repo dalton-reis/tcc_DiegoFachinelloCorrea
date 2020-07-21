@@ -1,0 +1,22 @@
+Passos:
+
+Instalar GIT versão mais recente.
+
+Fotos aéreas: Instalar ffmpeg mais recente baixando os arquivos no site oficial seguindo algum tutorial, ou baixar a pasta localizada em outros, não necessário instalação, basta descompactar no disco local desejado e adicionar ao Path nas variáveis do sistema. Nesse formato C:\\ffmpeg\bin 
+
+Postar no Twitter: Necessário criar uma conta desenvolvedor no próprio Twitter, após gerar as API key necessárias, na pasta do projeto criar um arquivo .env com as credenciais da API.
+
+Instalar Node.js versão mais recente.
+
+Descompactar o projeto e abrir com editor visual code.
+
+Ao abrir o projeto basta abrir o prompt do code e digitar - npm install.
+
+Para iniciar o projeto ainda no prompt digitar npm start, subirá o server Node.
+
+No demais basta ler a monagrafia para entender como a arquitetura funciona e também como executá-la.
+
+Link do projeto no github: github.com/diegofachinello/ar-drone-autonomous
+
+
+
